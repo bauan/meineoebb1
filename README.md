@@ -2,6 +2,36 @@
 
 A simple Python library and command-line tool for tracking your ÖBB (Austrian Federal Railways) train journeys.
 
+## Installation / Repo aktualisieren
+
+### Erstmaliges Klonen (inkl. aller .py-Dateien)
+
+Die aktuellen Dateien befinden sich auf dem Branch `copilot/meineoebb1`.
+Klone den Branch direkt:
+
+```bash
+git clone -b copilot/meineoebb1 https://github.com/bauan/meineoebb1.git
+cd meineoebb1
+```
+
+### Lokales Repo aktualisieren (bereits geklont)
+
+```bash
+# Neueste Änderungen vom Remote holen
+git fetch origin
+
+# Auf den richtigen Branch wechseln (falls noch auf main)
+git checkout copilot/meineoebb1
+
+# Auf den neuesten Stand bringen
+git pull origin copilot/meineoebb1
+```
+
+### Voraussetzungen
+
+- Python 3.10 oder neuer
+- pytest (nur für Tests): `pip install pytest`
+
 ## Features
 
 - Record journeys with date, origin, destination, train number, and optional ticket price
