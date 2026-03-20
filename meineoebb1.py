@@ -1,9 +1,11 @@
 """
 meineoebb1 - A simple ÖBB journey tracker.
 
-Allows users to add, list, and search their ÖBB train journeys.
+Allows users to add, list, search, remove and persist their ÖBB train journeys.
 """
 
+import json
+import os
 from datetime import date
 from typing import Optional
 
@@ -51,6 +53,27 @@ class Journey:
             and self.price == other.price
         )
 
+    def to_dict(self) -> dict:
+        """Serialize journey to a JSON-compatible dictionary."""
+        return {
+            "journey_date": self.journey_date.isoformat(),
+            "origin": self.origin,
+            "destination": self.destination,
+            "train": self.train,
+            "price": self.price,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Journey":
+        """Deserialize a journey from a dictionary (as produced by to_dict)."""
+        return cls(
+            journey_date=date.fromisoformat(data["journey_date"]),
+            origin=data["origin"],
+            destination=data["destination"],
+            train=data["train"],
+            price=data.get("price"),
+        )
+
 
 class JourneyTracker:
     """Tracks a collection of ÖBB journeys."""
@@ -61,6 +84,18 @@ class JourneyTracker:
     def add(self, journey: Journey) -> None:
         """Add a journey to the tracker."""
         self._journeys.append(journey)
+
+    def remove(self, index: int) -> Journey:
+        """Remove the journey at the given index (from the sorted list) and return it.
+
+        Raises IndexError if the index is out of range.
+        """
+        sorted_journeys = self.all()
+        if index < 0 or index >= len(sorted_journeys):
+            raise IndexError(f"No journey at index {index}.")
+        journey = sorted_journeys[index]
+        self._journeys.remove(journey)
+        return journey
 
     def all(self) -> list[Journey]:
         """Return all journeys, sorted by date."""
@@ -78,3 +113,27 @@ class JourneyTracker:
     def total_spent(self) -> float:
         """Return the total amount spent on journeys with a known price."""
         return sum(j.price for j in self._journeys if j.price is not None)
+
+    def count(self) -> int:
+        """Return the total number of journeys."""
+        return len(self._journeys)
+
+    def save(self, filepath: str) -> None:
+        """Save all journeys to a JSON file at *filepath*.
+
+        Creates parent directories if they do not exist.
+        """
+        os.makedirs(os.path.dirname(os.path.abspath(filepath)), exist_ok=True)
+        with open(filepath, "w", encoding="utf-8") as fh:
+            json.dump([j.to_dict() for j in self._journeys], fh, ensure_ascii=False, indent=2)
+
+    def load(self, filepath: str) -> None:
+        """Load journeys from a JSON file, replacing any existing data.
+
+        Does nothing if the file does not exist yet.
+        """
+        if not os.path.exists(filepath):
+            return
+        with open(filepath, encoding="utf-8") as fh:
+            data = json.load(fh)
+        self._journeys = [Journey.from_dict(d) for d in data]
